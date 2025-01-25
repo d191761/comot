@@ -6,6 +6,8 @@
 
 ## **Installation**
 
+First ensure that [ffmpeg](https://ffmpeg.org/download.html) has already installed in your system.
+
 ### **Windows Binary**
 
 A pre-compiled Windows version is available in the [releases](https://github.com/d191761/comot/releases) section. Follow these steps to use it:
@@ -40,27 +42,27 @@ To run the tool from Python, follow these steps:
 
 ## **Usage**
 
-1. **Load Video:**
+1. **Load video:**
    - Open the application and load the video file you want to analyze using `Load Video` button.
 
-2. **Mask Glass Area:**
-   - Use the masking tool to define the glass area, by clicking on the image area then click `masking` button when done.
+2. **Masking uncounted area:**
+   - Use the masking tool to exclude uncounted area due to protruding experimental probe, by clicking on the image area then click `masking` button when done.
 
-3. **Main Window:**
+3. **Main window:**
    - After masking, the main window will appear. Refer to the annotated image below for details about each component:
 
 ![Main Window Annotation](docs/comot_main_with_annotation.png)
 
-4. **Proceed to Analysis:**
+4. **Proceed to analysis:**
    - Click the `Results` button.
 
-5. **Set Time Range:**
+5. **Set time range:**
    - Specify the start and end times for analysis.
 
-6. **Confirm and Process:**
+6. **Confirm and process:**
    - Click **process** to process the video.
 
-7. **Save Results:**
+7. **Save results:**
    - Once the analysis is complete, save the results as either `.csv` or `.png`.
 
 ---
