@@ -1,4 +1,5 @@
 # **COMOT: Cell Counting and Motility Observation Tool**
+[![Ruff](https://img.shields.io/badge/linter-Ruff-blue)](https://github.com/charliermarsh/ruff) [![MIT License](https://img.shields.io/badge/license-MIT-green)](https://github.com/d191761/comot/blob/main/LICENSE.md)
 
 **COMOT** is a tool designed for cell counting and motility observation in a video. Currently, it supports `.mp4` and `.mov` file formats.
 
