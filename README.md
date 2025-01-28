@@ -1,7 +1,7 @@
 # **COMOT: Cell Counting and Motility Observation Tool**
 [![Ruff](https://img.shields.io/badge/linter-Ruff-blue)](https://github.com/charliermarsh/ruff) [![MIT License](https://img.shields.io/badge/license-MIT-green)](https://github.com/d191761/comot/blob/main/LICENSE.md)
 
-**COMOT** is a tool designed for cell counting and motility observation in a video. Currently, it supports `.mp4` and `.mov` file formats.
+**COMOT** is a Python-based software tool designed to automate microbial cell counting and motility measurement through image processing and computer vision techniques. It is built using [OpenCV](https://github.com/opencv/opencv-python) for processing and [customtkinter](https://github.com/TomSchimansky/CustomTkinter) for the user interface. Currently, it supports `.mp4` and `.mov` file formats.
 
 ---
 
@@ -47,27 +47,28 @@ To run the tool from Python, follow these steps:
    - Open the application and load the video file you want to analyze using `Load Video` button.
 
 2. **Masking uncounted area:**
-   - Use the masking tool to exclude uncounted area due to protruding experimental probe, by clicking on the image area then click `masking` button when done.
+   - Use the masking tool to exclude uncounted area due to protruding experimental probe or undesired regions, by clicking on the image area then click `masking` button when done.
 
 3. **Main window:**
    - After masking, the main window will appear. Refer to the annotated image below for details about each component:
-
 ![Main Window Annotation](docs/comot_main_with_annotation.png)
 
 4. **Proceed to analysis:**
    - Click the `Results` button.
 
 5. **Set time range:**
-   - Specify the start and end times for analysis.
+   - Specify the start and end times for analysis (in second).
+![Result settings](docs/result_settings.png)
 
 6. **Confirm and process:**
-   - Click **process** to process the video.
+   - Confirm and process: Click `process` to execute the cell counting with the desired settings.
 
 7. **Save results:**
    - Once the analysis is complete, save the results as either `.csv` or `.png`.
+![Result](docs/result.png)
 
 ---
 ## Dataset
 
-The dataset used in the paper can be downloaded trough this [link](https://www.kaggle.com/datasets/d191761/comot-demo)
+The demo dataset used in the paper can be downloaded trough this [link](https://www.kaggle.com/datasets/d191761/comot-demo)
 
