@@ -1,6 +1,6 @@
-# COMOT: cell counting and motility observation tool
+# COMOT: Cell cOunting and Motility Observation Tool
 
-kamerad bersama menghitung  uget-uget
+Comot is a tool developed to automate the processes of microbial cell counting and motility analysis 
 
 
 usage: 
