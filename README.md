@@ -59,14 +59,15 @@ To run the tool from Python, follow these steps:
 
 5. **Set time range:**
    - Specify the start and end times for analysis (in second).
-![Result settings](docs/result_settings.png)
+<img src="docs/result_settings.png" alt="Result settings" width="50%">
 
 6. **Confirm and process:**
    - Confirm and process: Click `process` to execute the cell counting with the desired settings.
 
 7. **Save results:**
    - Once the analysis is complete, save the results as either `.csv` or `.png`.
-![Result](docs/result.png)
+<img src="docs/result.png" alt="Result settings" width="50%">
+
 
 ---
 ## Dataset
