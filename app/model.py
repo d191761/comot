@@ -10,9 +10,9 @@ import tempfile
 import matplotlib.pyplot as plt
 import csv
 import copy
-import time
 
 HEATMAP_WINDOW = 20
+
 
 # Utilities
 def get_image_from_cap(cap):
@@ -257,7 +257,7 @@ class VideoPlayer:
         self.tkinter_frame2.configure(image=bin_image)
         self.tkinter_frame2.update()
         self.tkinter_label_frame1.configure(
-            text=f"Time: {frame_i/self.video_data.fps:.3f} s (frame {frame_i})"
+            text=f"Time: {frame_i / self.video_data.fps:.3f} s (frame {frame_i})"
         )
 
     def set_frame_to(self, frame_i, set_slider=True):

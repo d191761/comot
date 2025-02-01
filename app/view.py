@@ -325,7 +325,7 @@ class ProcessingView:
         # Add your custom function here
         print("System exit")
         self.window.destroy()
-        os._exit(1) # may break os-compatibility
+        os._exit(1)  # may break os-compatibility
         sys.exit()
 
     def run(self, parent):
