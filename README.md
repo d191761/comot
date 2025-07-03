@@ -3,6 +3,7 @@
 
 **COMOT** is a Python-based software tool designed to automate microbial cell counting and motility measurement through image processing and computer vision techniques. It is built using [OpenCV](https://github.com/opencv/opencv-python) for processing and [customtkinter](https://github.com/TomSchimansky/CustomTkinter) for the user interface. Currently, it supports `.mp4` and `.mov` file formats.
 
+
 ---
 
 ## **Installation**
