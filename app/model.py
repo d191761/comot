@@ -292,6 +292,9 @@ class VideoPlayer:
         self.show_frame(self.video_data.start_frame)
         self.current_frame = self.video_data.start_frame
 
+    def release(self):
+        self.cap.release()
+
 
 @dataclass
 class VideoData:
@@ -432,6 +435,11 @@ class ProcessingModel:
         if video_player.thresholding_method == "binary":
             meta_data += f", threshold value: {video_player.binary_thresholding_param}"
 
+        return count_per_second, meta_data
+
+
+class ResultModel:
+    def generate_plot_image(self, count_per_second, meta_data):
         plt.plot(count_per_second)
         plt.xlabel("time (second)")
         plt.ylabel("count")
@@ -455,11 +463,8 @@ class ProcessingModel:
         )
 
         temp_file.close()
+        return tk_image_count_plot
 
-        return count_per_second, tk_image_count_plot, meta_data
-
-
-class ResultModel:
     def save_image(self, file_path, count_per_second, meta_data):
         file_extension = file_path.split(".")[-1]
 

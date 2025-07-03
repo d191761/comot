@@ -2,6 +2,7 @@ from customtkinter import filedialog
 import threading
 
 
+
 class MainWindowControler:
     def __init__(self, view, model, config) -> None:
         self.view = view
@@ -44,6 +45,13 @@ class MainWindowControler:
             self.view.window.deiconify()
 
     def open_video(self):
+        # Perform a full cleanup before loading a new video
+        if self.model.video_player:
+            self.model.video_player.release()
+        self.top_controler["masking"].model.clear_mask_coordinate()
+        self.model.video_data = None
+        self.model.video_player = None
+
         self.top_controler["open_file"].run(self)
         self.view.window.withdraw()
 
@@ -185,13 +193,15 @@ class OpenFileControler:
 
     def button_load_video_pressed(self):
         filepath = filedialog.askopenfilename()
+        if not filepath:
+            return
         self.model.set_file_path(filepath)
 
         # load video data to the main controler
         video_data = self.model.load_video()
         self.parent_controler.set_video_data(video_data)
 
-        self.view.window.withdraw()
+        self.view.window.destroy()
         self.parent_controler.top_controler["masking"].set_start_frame_image(
             video_data.ref_image
         )
@@ -231,7 +241,7 @@ class MaskingControler:
         self.delete_mask()
 
     def button_masking_pressed(self):
-        self.view.window.withdraw()
+        self.view.window.destroy()
         self.parent_controler.model.video_data.mask_coordinate = (
             self.model.mask_coordinate
         )
@@ -291,7 +301,7 @@ class ResultProcessControler:
         start_time = self.view.window.entry_start.get()
         end_time = self.view.window.entry_end.get()
 
-        self.view.window.withdraw()
+        self.view.window.destroy()
 
         self.parent_controler.top_controler["processing"].run(
             self, self.parent_controler.model.video_player, start_time, end_time
@@ -321,14 +331,23 @@ class ProcessingControler:
         ).start()
 
     def calculate_and_update(self, video_player, start_time, end_time):
-        count_per_second, tk_image_count_plot, meta_data = self.model.calculate_count(
+        # This runs in a background thread
+        count_per_second, meta_data = self.model.calculate_count(
             video_player, start_time, end_time
         )
+        
+        # Schedule the UI update to run on the main thread
+        self.view.window.after(0, self.calculation_finished, count_per_second, meta_data)
 
+    def calculation_finished(self, count_per_second, meta_data):
+        # This runs on the main thread
+        self.view.window.destroy()
         self.parent_controler.top_controler["result"].run(
-            self, count_per_second, tk_image_count_plot, meta_data
+            self,
+            count_per_second,
+            meta_data,
+            self.parent_controler,
         )
-        self.view.window.withdraw()
 
 
 class ResultControler:
@@ -344,6 +363,10 @@ class ResultControler:
         self.view.window.button_save_image.configure(
             command=self.button_save_image_pressed
         )
+
+    def close_result_window(self):
+        self.view.window.destroy()
+        self.main_controler.open_video()
 
     def button_save_csv_pressed(self):
         file_path = filedialog.asksaveasfilename(
@@ -367,10 +390,18 @@ class ResultControler:
         if file_path:
             self.model.save_image(file_path, self.count_per_second, self.meta_data)
 
-    def run(self, parent_controler, count_per_second, tk_image_count_plot, meta_data):
+    def run(
+        self, parent_controler, count_per_second, meta_data, main_controler
+    ):
         self.count_per_second = count_per_second
         self.meta_data = meta_data
         self.parent_controler = parent_controler
-        self.view.run(parent_controler.view.window)
+        self.main_controler = main_controler
+
+        tk_image_count_plot = self.model.generate_plot_image(
+            self.count_per_second, self.meta_data
+        )
+
+        self.view.run(self.main_controler.view.window, self)
         self.view.set_image(tk_image_count_plot)
         self.init_callbacks()
