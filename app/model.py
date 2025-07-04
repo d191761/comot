@@ -404,32 +404,47 @@ class ResultProcessModel:
 
 class ProcessingModel:
     def calculate_count(self, video_player, start_time, end_time):
+        end_time = end_time  
         fps = int(video_player.video_data.fps)
         print("calculate model")
         print(f"start {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
+        # Compute absolute frame indices
         start_frame = int(float(start_time) * fps)
-        end_frame = int(float(end_time) * fps)
+        end_frame = int((float(end_time)) * fps)
 
         count_per_second = []
         tempcount = np.zeros(fps, dtype=np.uint)
 
-        for i in range(1, end_frame - start_frame - 1):
-            frame_i = start_frame + i
+        # Loop over every frame from start_frame up to, but not including, end_frame
+        for frame_i in range(start_frame, end_frame):
+            idx = frame_i % fps
+            # Seek to the correct frame
             video_player.cap.set(cv.CAP_PROP_POS_FRAMES, float(frame_i))
             _, cue = video_player.calc_binary(
                 video_player.cap, frame_i, return_img=False
             )
-            contours, hierarchy = cv.findContours(
-                cue, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE
-            )
-            tempcount[frame_i % fps] = len(contours)
+            # Handle OpenCV version differences in findContours
+            try:
+                contours, hierarchy = cv.findContours(
+                    cue, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE
+                )
+            except ValueError:
+                _, contours, hierarchy = cv.findContours(
+                    cue, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE
+                )
 
-            if frame_i % fps == 0:
-                count_per_second.append(np.average(tempcount))
+            # Count contours for this frame
+            tempcount[idx] = len(contours)
+
+            # Once we have collected one second's worth of frames, average and reset
+            if idx == fps - 1:
+                count_per_second.append(tempcount.mean())
+                tempcount.fill(0)
 
         print(f"end {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
+        # Build metadata string
         meta_data = f"file: {video_player.video_data.file_name}"
         meta_data += f"\nthresholding method: {video_player.thresholding_method}"
         if video_player.thresholding_method == "binary":
@@ -439,61 +454,57 @@ class ProcessingModel:
 
 
 class ResultModel:
-    def generate_plot_image(self, count_per_second, meta_data):
-        plt.plot(count_per_second)
-        plt.xlabel("time (second)")
-        plt.ylabel("count")
-        plt.subplots_adjust(bottom=0.2)
+    def _create_plot(self, count_per_second, meta_data):
+        """Create and return a matplotlib Figure for the given data and metadata."""
+        x = np.arange(1, len(count_per_second) + 1)
+        fig, ax = plt.subplots()
+        ax.plot(x, count_per_second)
+        ax.set_xlabel("time (second)")
+        ax.set_ylabel("count")
+        fig.subplots_adjust(bottom=0.2)
+        fig.text(0.03, 0.03, meta_data, ha="left", fontsize=10)
 
-        plt.figtext(0.03, 0.03, meta_data, ha="left", fontsize=10)
-
-        if len(count_per_second) > 15 and len(count_per_second) <= 30:
-            plt.xticks(np.arange(0, len(count_per_second) + 5, 5))
-        elif len(count_per_second) > 30:
-            plt.xticks(np.arange(0, len(count_per_second) + 15, 15))
+        n = len(count_per_second)
+        if 15 < n <= 30:
+            step = 5
+        elif n > 30:
+            step = 15
         else:
-            plt.xticks(np.arange(0, len(count_per_second) + 1, 1))
+            step = 1
 
-        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".png")
-        plt.savefig(temp_file.name)
-        plt.close()
-        plt_image = Image.open(temp_file.name)
-        tk_image_count_plot = customtkinter.CTkImage(
-            light_image=plt_image, dark_image=plt_image, size=(int(640), int(480))
+        ax.set_xticks(np.arange(1, n + step, step))
+        return fig
+
+    def _format_metadata_lines(self, meta_data):
+        """Return a list of metadata lines, each prefixed with '#' for CSV."""
+        return [f"#{line}" for line in meta_data.split("\n")]
+
+    def generate_plot_image(self, count_per_second, meta_data):
+        fig = self._create_plot(count_per_second, meta_data)
+
+        tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".png")
+        fig.savefig(tmp.name)
+        plt.close(fig)
+
+        pil_img = Image.open(tmp.name)
+        tk_img = customtkinter.CTkImage(
+            light_image=pil_img,
+            dark_image=pil_img,
+            size=(640, 480)
         )
-
-        temp_file.close()
-        return tk_image_count_plot
+        tmp.close()
+        return tk_img
 
     def save_image(self, file_path, count_per_second, meta_data):
-        file_extension = file_path.split(".")[-1]
-
-        plt.plot(count_per_second)
-        plt.xlabel("time (second)")
-        plt.ylabel("count")
-        plt.subplots_adjust(bottom=0.2)
-        plt.figtext(0.03, 0.03, meta_data, ha="left", fontsize=10)
-
-        if len(count_per_second) > 15 and len(count_per_second) <= 30:
-            plt.xticks(np.arange(0, len(count_per_second) + 5, 5))
-        elif len(count_per_second) > 30:
-            plt.xticks(np.arange(0, len(count_per_second) + 15, 15))
-        else:
-            plt.xticks(np.arange(0, len(count_per_second) + 1, 1))
-
-        plt.savefig(file_path, format=file_extension, dpi=300)
-        plt.close()
+        ext = file_path.rsplit(".", 1)[-1]
+        fig = self._create_plot(count_per_second, meta_data)
+        fig.savefig(file_path, format=ext, dpi=300)
+        plt.close(fig)
 
     def save_csv(self, file_path, count_per_second, meta_data):
-        with open(file_path, "w", newline="") as file:
-            writer = csv.writer(file)
-            # Split the metadata into lines and prefix each line with '# '
-            formatted_meta_data = "\n".join(
-                [f"#{line}" for line in meta_data.split("\n")]
-            )
-            # Write each line of metadata as a separate row
-            for meta_line in formatted_meta_data.split("\n"):
-                writer.writerow([meta_line])
-            # Write the count_per_second data
-            for item in count_per_second:
-                writer.writerow([int(item)])
+        with open(file_path, "w", newline="") as f:
+            writer = csv.writer(f)
+            for line in self._format_metadata_lines(meta_data):
+                writer.writerow([line])
+            for value in count_per_second:
+                writer.writerow([int(value)])
